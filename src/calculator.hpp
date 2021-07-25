@@ -4,12 +4,19 @@
 class Calculator
 {
 public:
-	double Evaluate( std::string expression_ );
+	bool ReadStdin();
+	double Evaluate();
 	double GetResult() const;
+	void SetExpression(std::string expr);
+	void ShowResult() const;
 
 public:
 	Calculator() = default;
 	~Calculator() = default;
+	Calculator( const Calculator & ) = delete;
+	Calculator &operator=( const Calculator & ) = delete;
+	Calculator( Calculator && ) = default;
+	Calculator &operator=( Calculator && ) = default;
 
 private:
 	struct Token
@@ -34,4 +41,5 @@ private:
 	Operations operations;
 	Operands operands;
 	double result = .0;
+	bool isError = false;
 };

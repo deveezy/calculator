@@ -1,9 +1,32 @@
 #include "calculator.hpp"
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
 namespace
 {
 #define TokenOperandType -1
 #define TokenOperationValue 0
+
+	namespace StringUtil
+	{
+		std::string Trim( const std::string &str )
+		{
+			std::string s;
+			char ch;
+			for (size_t i = 0; i < str.length(); ++i)
+			{
+				ch = str[i];
+				if (( ch == ' ' ) || ( ch == '\t' ))
+				{
+					continue;
+				}
+				s += ch;
+			}
+			return s;
+		}
+	}
+
 }
 
 bool Calculator::Calc( Operations &operations, Operands &operands )
@@ -68,7 +91,7 @@ double Calculator::ParseDecimal( char *ch, size_t *index )
 double Calculator::ParseFraction( char *ch, size_t *index )
 {
 	double number = .0;
-	*ch = expression[++(*index)];
+	*ch = expression[++( *index )];
 	while (( *ch >= '0' && *ch <= '9' ))
 	{
 		number = number * 10 + ( *ch - '0' ) * .1;
@@ -84,9 +107,8 @@ Calculator::PriorityType Calculator::GetPriority( char ch ) const
 	else return 3;
 }
 
-double Calculator::Evaluate( std::string expression_ )
+double Calculator::Evaluate()
 {
-	expression = std::move( expression_ );
 	bool canBeNegative = true;
 	bool isMinus = false;
 	Token token;
@@ -163,6 +185,13 @@ double Calculator::Evaluate( std::string expression_ )
 			++i;
 			continue;
 		}
+		else
+		{
+			fprintf( stderr, "Invalid input. Input contains invalid expression: %.*s\n",
+				( expression.length() - i - 1 ), ( expression.c_str() + i ) );
+			isError = true;
+			return result;
+		}
 	}
 	while (!operations.empty())
 	{
@@ -171,6 +200,47 @@ double Calculator::Evaluate( std::string expression_ )
 	}
 
 	result = operands.top().value;
+	isError = false;
 	return result;
-	// printf( "%f\n", operands.top().value );
+}
+
+double Calculator::GetResult() const
+{
+	if (isError)
+	{
+		fprintf( stderr, "An error occured. Error: Invalid result\n" );
+	}
+	return result;
+}
+
+void Calculator::SetExpression( std::string expr )
+{
+	std::string e = { ::StringUtil::Trim( expr ) };
+	expression = std::move( e );
+}
+
+void Calculator::ShowResult() const
+{
+	if (isError)
+	{
+		fprintf( stderr, "An error occured. Error: Invalid result\n" );
+	}
+	printf( "%.2f", result );
+}
+
+bool Calculator::ReadStdin()
+{
+	char buffer[4096] = { 0 };
+	printf( "Enter expression to evaluate.\nMax 4095 symbols.\n" );
+	if (fgets( buffer, 4095, stdin ) == nullptr)
+	{
+		fprintf( stderr, "Encountered read error while reading expression\n" );
+		return false;
+	}
+
+	std::string str = StringUtil::Trim( buffer );
+	std::string expr = str;
+
+	expression = std::move( expr );
+	return true;
 }
