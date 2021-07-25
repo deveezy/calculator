@@ -1,7 +1,6 @@
 #include "calculator.hpp"
 #include <stdio.h>
-#include <errno.h>
-#include <string.h>
+#include <math.h>
 
 namespace
 {
@@ -26,7 +25,6 @@ namespace
 			return s;
 		}
 	}
-
 }
 
 bool Calculator::Calc( Operations &operations, Operands &operands )
@@ -41,12 +39,14 @@ bool Calculator::Calc( Operations &operations, Operands &operands )
 	{
 		case '+':
 			opRes = op2 + op1;
+			opRes = RoundUp(opRes);
 			token = { TokenOperandType, opRes };
 			operands.push( token );
 			operations.pop();
 			break;
 		case '-':
 			opRes = op2 - op1;
+			opRes = RoundUp(opRes);
 			token = { TokenOperandType, opRes };
 			operands.push( token );
 			operations.pop();
@@ -58,12 +58,14 @@ bool Calculator::Calc( Operations &operations, Operands &operands )
 				return false;
 			}
 			opRes = op2 / op1;
+			opRes = RoundUp(opRes);
 			token = { TokenOperandType, opRes };
 			operands.push( token );
 			operations.pop();
 			break;
 		case '*':
 			opRes = op2 * op1;
+			opRes = RoundUp(opRes);
 			token = { TokenOperandType, opRes };
 			operands.push( token );
 			operations.pop();
@@ -98,6 +100,11 @@ double Calculator::ParseFraction( char *ch, size_t *index )
 		*ch = expression[++( *index )];
 	}
 	return number;
+}
+
+float Calculator::RoundUp(double value) 
+{
+	return ( ceil( (float) value * 100 ) / 100 );
 }
 
 Calculator::PriorityType Calculator::GetPriority( char ch ) const
@@ -136,11 +143,12 @@ double Calculator::Evaluate()
 			}
 			number += fraction;
 			number = isMinus ? -number : number;
+			number = fraction > .0 ? RoundUp(number) : number;
 			token = { TokenOperandType, number };
 			operands.push( token );
 			continue;
 		}
-		if (ch == '+' || ch == '-' && canBeNegative == 0 || ch == '/' || ch == '*')
+		if (ch == '+' || ( ch == '-' && canBeNegative == 0 ) || ch == '/' || ch == '*')
 		{
 			if (operations.empty())
 			{
@@ -188,7 +196,7 @@ double Calculator::Evaluate()
 		else
 		{
 			fprintf( stderr, "Invalid input. Input contains invalid expression: %.*s\n",
-				( expression.length() - i - 1 ), ( expression.c_str() + i ) );
+				static_cast< int >( ( expression.length() - i - 1 ) ), ( expression.c_str() + i ) );
 			isError = true;
 			return result;
 		}
@@ -213,9 +221,10 @@ double Calculator::GetResult() const
 	return result;
 }
 
-void Calculator::SetExpression( std::string expr )
+void Calculator::SetExpression( const std::string &expr )
 {
 	std::string e = { ::StringUtil::Trim( expr ) };
+	e += '\n';
 	expression = std::move( e );
 }
 

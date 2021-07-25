@@ -7,7 +7,7 @@ public:
 	bool ReadStdin();
 	double Evaluate();
 	double GetResult() const;
-	void SetExpression(std::string expr);
+	void SetExpression( const std::string &expr );
 	void ShowResult() const;
 
 public:
@@ -35,6 +35,7 @@ private:
 	bool Calc( Operations &operations, Operands &operands );
 	double ParseDecimal( char *ch, size_t *index );
 	double ParseFraction( char *ch, size_t *index );
+	float  RoundUp(double value);
 
 private:
 	std::string expression;

@@ -1,7 +1,7 @@
 TODO:
 
 - [X] Parse floating-point numbers
-- [ ] Read from console
-- [ ] Unit tests
-- [ ] Make class
-- [ ] Trim input string 
+- [X] Read from console
+- [X] Trim input string 
+- [X] Make class
+- [X] Unit tests
